@@ -11,6 +11,7 @@
   <a href="https://github.com/jboho/dev-status/blob/main/CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PRs welcome" /></a>
   <a href="https://calver.org/"><img src="https://img.shields.io/badge/calver-YYYY.M.MICRO-228bff.svg" alt="CalVer" /></a>
   <a href="https://v2.tauri.app/"><img src="https://img.shields.io/badge/Tauri-2-FFC131?logo=tauri&logoColor=black" alt="Tauri 2" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-yellow.svg" alt="License: MIT" /></a>
 </p>
 
 <p align="center">
