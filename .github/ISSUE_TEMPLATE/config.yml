@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Report a security issue
+    url: https://github.com/jboho/dev-status/security/advisories/new
+    about: Use private advisories or follow SECURITY.md — do not file public issues for vulnerabilities.
+  - name: Contributing
+    url: https://github.com/jboho/dev-status/blob/main/CONTRIBUTING.md
+    about: How to set up the project, CalVer, and PR expectations.

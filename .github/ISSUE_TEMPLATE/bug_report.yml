@@ -1,0 +1,44 @@
+name: Bug report
+description: Something is broken or incorrect
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for taking the time to report a bug.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+      description: What did you expect vs what you saw?
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: How can we reproduce it?
+      description: Steps, URLs or feeds involved, and whether you use **browser** (`pnpm dev`) or **desktop** (`pnpm tauri:dev`).
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version / commit
+      description: e.g. `2026.4.0` or git SHA
+    validations:
+      required: false
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - macOS (desktop)
+        - Windows (desktop)
+        - Linux (desktop)
+        - Browser (dev)
+        - Other
+    validations:
+      required: true

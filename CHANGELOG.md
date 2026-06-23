@@ -1,0 +1,74 @@
+# Changelog
+
+All notable changes to this project are documented in this file.
+
+The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
+Version numbers use [Calendar Versioning](https://calver.org/) (`YYYY.M.MICRO`) — see [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## [Unreleased]
+
+## [2026.6.3] — 2026-06-22
+
+### Added
+
+- **Inline URL editing:** Each service row in the Settings screen now has an inline edit mode — click to edit the status URL, then Save or Cancel without leaving the screen. URLs are validated to block SSRF before saving.
+- **Status-aware tray icon:** The system tray icon reflects overall service health in real-time — green when all services are nominal, amber on minor/maintenance, red on major/critical outage.
+- **Visible fetch failures:** Services whose status fetch fails are no longer silently dropped. Those with no prior data are listed in a collapsible banner (`⚠ N of M services failed to load`) showing each service's raw error message, with a per-service **Retry** button.
+- **Stale data on failed refresh:** A service that fails a refresh but has last-known-good data keeps its card, marked with a `⚠ stale Nm` badge and a Retry button, instead of disappearing.
+
+### Changed
+
+- **Renamed to DevStatus:** Product name updated from "dev-status" to **DevStatus** across the app title, window title, desktop notifications, and README.
+- **Refined header controls:** Services navigation moved from a text button in the title bar to a ⚙ gear icon in the toolbar; the "← Back" text button is replaced with an arrow-only button.
+- **New app icon:** Default Tauri template icon replaced with the D+dot mark; all platform sizes regenerated (macOS, Windows, iOS, Android).
+- **Resilient scanning:** Status fetching now merges per-service results instead of rebuilding from scratch each poll, so a transient failure never wipes a working service's data.
+
+### Fixed
+
+- **Desktop fetches behind a TLS-inspecting proxy:** Switched Rust fetch to `native-tls` (OS trust store) so it works on corporate networks that re-sign HTTPS with an internal CA — previously every service failed with `error sending request`.
+- **Stale status URLs auto-migrated:** Linear URL corrected to `linearstatus.com`; Redis removed from defaults (moved to FireHydrant, no public JSON API). Existing configs are repaired automatically on startup.
+- **Browser dev-mode CORS preflight:** Removed the `Cache-Control`/`Pragma` request headers that forced an `OPTIONS` preflight; statuspage feeds reject preflight redirects. `cache: "no-store"` still prevents stale reads.
+- **Retry spinner:** Per-service Retry button now shows a spinning indicator while the refetch is in-flight.
+- **Windows MSI build:** Added WiX version override so MSI builds (which cap at 255.255.65535.0) no longer reject calendar-versioned build numbers.
+
+## [2026.6.0] — 2026-06-05
+
+### Added
+
+- **Desktop notifications:** On each poll, diffs the page-level `status.indicator` for every enabled service against the previous result and fires a single bundled OS notification listing each change as `ServiceName: from → to` (e.g. `Claude: none → minor`). No notification on first load (no baseline). Tauri-only; requests OS permission on first trigger.
+- **Reliable refresh:** `cache: "no-store"` and no-cache request headers on browser `fetch` and Rust `fetch_status_body` so status data is never served from a stale HTTP cache.
+
+### Changed
+
+- **README:** screenshots of dashboard and services screen, expanded feature descriptions.
+
+### Security
+
+- Bumped `vite` 8.0.3 → 8.0.16, resolving two high CVEs ([GHSA-v2wj-q39q-566r](https://github.com/advisories/GHSA-v2wj-q39q-566r), [GHSA-p9ff-h696-f583](https://github.com/advisories/GHSA-p9ff-h696-f583)).
+- Bumped `shadcn` 4.1.1 → 4.10.0, resolving two high CVEs in transitive `fast-uri` dep ([GHSA-q3j6-qgpj-74h6](https://github.com/advisories/GHSA-q3j6-qgpj-74h6), [GHSA-v39h-62p7-jpjc](https://github.com/advisories/GHSA-v39h-62p7-jpjc)).
+- Full npm and Cargo dependency refresh (`tauri` 2.10.3 → 2.11.2, `typescript` 5.9.3 → 6.0.3, `tailwindcss` 4.2.2 → 4.3.0, and many more).
+
+## [2026.4.2] — 2026-04-28
+
+### Added
+
+- **MIT** [`LICENSE`](LICENSE) and `license` field in `package.json`.
+- [`SECURITY.md`](SECURITY.md) for coordinated vulnerability reporting.
+- [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md) (Contributor Covenant 2.1).
+- [`.editorconfig`](.editorconfig) for consistent formatting across editors.
+- [`.nvmrc`](.nvmrc) (Node 22) and `engines` in `package.json`.
+- [`.github/dependabot.yml`](.github/dependabot.yml) for npm, Cargo, and GitHub Actions updates.
+- Issue forms ([bug report](.github/ISSUE_TEMPLATE/bug_report.yml), [feature request](.github/ISSUE_TEMPLATE/feature_request.yml)), [issue template config](.github/ISSUE_TEMPLATE/config.yml), and [pull request template](.github/pull_request_template.md).
+- [`scripts/sync-version.mjs`](scripts/sync-version.mjs) and `pnpm version:sync` to align Tauri + Cargo with `package.json` after bumps.
+- [`src-tauri/rust-toolchain.toml`](src-tauri/rust-toolchain.toml) pinning the **stable** Rust channel.
+- **Vitest coverage** (`pnpm test:coverage`, `@vitest/coverage-v8`); CI uploads **HTML coverage** as workflow artifact `coverage-report`.
+- **Pro README:** badges, tables, security/license links, and expanded contributing guidance.
+
+## [2026.4.1] — 2026-04-28
+
+### Added
+
+- **Reliable refresh:** `cache: "no-store"` and no-cache request headers on browser `fetch` and Rust `fetch_status_body` so status data is not served from a stale HTTP cache.
+- **Interval clarity:** Single source for poll interval in code; header shows “Auto refresh every … · Last updated …”.
+- **Desktop notifications (Tauri):** When an enabled service’s overall `status.indicator` changes after a fetch, show a consolidated native notification (after OS permission).
+- **`diffOverallIndicators`** helper (`src/statusChange.ts`) and tests.
