@@ -169,7 +169,7 @@ async fn fetch_status_body(url: String) -> Result<Vec<u8>, String> {
         .build()
         .map_err(|e| e.to_string())?
         .get(&url)
-        .header("User-Agent", "dev-status/1.0")
+        .header("User-Agent", "DevStatus/1.0")
         .header("Accept", "application/json")
         .header("Cache-Control", "no-cache")
         .header("Pragma", "no-cache")
