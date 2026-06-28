@@ -2,7 +2,7 @@
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "DevStatus",
   "version": "2026.6.5",
-  "identifier": "com.devstatus.app",
+  "identifier": "com.credstudios.devstatus",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:5173",
