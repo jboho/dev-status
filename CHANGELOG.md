@@ -7,6 +7,17 @@ Version numbers use [Calendar Versioning](https://calver.org/) (`YYYY.M.MICRO`) 
 
 ## [Unreleased]
 
+## [2026.6.6] — 2026-06-27
+
+### Changed
+
+- **HTTP User-Agent:** Outbound status fetches now identify as `DevStatus`, matching the product name.
+- **Bundle identifier:** Set the application identifier to `com.credstudios.devstatus`, a stable reverse-DNS identity under a controlled domain. This fixes the app-data directory, macOS bundle ID, and Windows install registration in place ahead of public distribution.
+
+### Fixed
+
+- **Version consistency:** Aligned the Rust crate version (`Cargo.toml`/`Cargo.lock`) with `package.json` and `tauri.conf.json` so every release manifest reports the same version.
+
 ## [2026.6.3] — 2026-06-22
 
 ### Added
