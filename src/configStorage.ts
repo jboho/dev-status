@@ -102,11 +102,19 @@ function applyLegacyUrlFixes(config: AppConfig): AppConfig {
 /** Services whose status feeds have been retired or consolidated. */
 const LEGACY_REMOVED_NAMES = new Set(["Anthropic", "Redis"]);
 
+export function isDeadServiceName(name: string): boolean {
+  return LEGACY_REMOVED_NAMES.has(name);
+}
+
 function removeLegacyServices(config: AppConfig): AppConfig {
   return {
     ...config,
-    services: config.services.filter((s) => !LEGACY_REMOVED_NAMES.has(s.name)),
+    services: config.services.filter((s) => !isDeadServiceName(s.name)),
   };
+}
+
+function sanitizeForPersist(config: AppConfig): AppConfig {
+  return applyLegacyUrlFixes(removeLegacyServices(config));
 }
 
 /** Append any default services missing from saved config (by name), preserving order. */
@@ -153,16 +161,20 @@ export async function loadAppConfig(): Promise<AppConfig> {
 /** Synchronous write for browser (e.g. beforeunload flush). */
 export function persistBrowserConfigSync(next: AppConfig): void {
   try {
-    localStorage.setItem(BROWSER_STORAGE_KEY, JSON.stringify(next));
+    localStorage.setItem(
+      BROWSER_STORAGE_KEY,
+      JSON.stringify(sanitizeForPersist(next)),
+    );
   } catch {
     /* quota / private mode */
   }
 }
 
 export async function persistAppConfig(next: AppConfig): Promise<void> {
+  const sanitized = sanitizeForPersist(next);
   if (isTauri()) {
-    await invoke("save_config", { config: JSON.stringify(next) });
+    await invoke("save_config", { config: JSON.stringify(sanitized) });
     return;
   }
-  persistBrowserConfigSync(next);
+  persistBrowserConfigSync(sanitized);
 }

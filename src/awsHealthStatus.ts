@@ -23,6 +23,18 @@ function isAwsHealthRow(raw: unknown): raw is AwsHealthEvent {
   return typeof arn === "string" && arn.includes("arn:aws:health");
 }
 
+/**
+ * Keep only events relevant to US usage: any `us-*` region (us-east-1,
+ * us-west-2, us-gov-*) plus global / region-less events (IAM, Route 53,
+ * CloudFront, billing) that affect every region. Drops eu-, ap-, me-, sa-, etc.
+ */
+export function isUsOrGlobalRegion(regionName: string | undefined): boolean {
+  if (!regionName) return true;
+  const r = regionName.trim().toLowerCase();
+  if (r === "" || r === "global") return true;
+  return r.startsWith("us-");
+}
+
 /** Decode AWS Health `data.json` (UTF-8, UTF-8 BOM, or UTF-16 BE/LE). */
 export function parseAwsHealthDataBuffer(buffer: ArrayBuffer): unknown {
   const u8 = new Uint8Array(buffer);
@@ -211,7 +223,31 @@ export function normalizeAwsDataJson(raw: unknown): StatuspageResponse {
     };
   }
 
-  const events = raw as AwsHealthEvent[];
+  const events = (raw as AwsHealthEvent[]).filter((e) =>
+    isUsOrGlobalRegion(e.region_name),
+  );
+
+  if (events.length === 0) {
+    return {
+      page: {
+        id: "aws",
+        name: "AWS",
+        url: "https://status.aws.amazon.com",
+      },
+      status: {
+        indicator: "none",
+        description: "No active US-region events on the public AWS Health feed",
+      },
+      components: [
+        {
+          id: "aws-feed-empty",
+          name: "Public feed: no active US-region events (see status.aws.amazon.com for history)",
+          status: "operational",
+        },
+      ],
+    };
+  }
+
   const components = buildAwsComponentsFromEvents(events);
 
   const { indicator, description } =

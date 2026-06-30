@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   isAwsHealthDataUrl,
+  isUsOrGlobalRegion,
+  normalizeAwsDataJson,
   parseAwsHealthDataBuffer,
 } from "./awsHealthStatus";
 
@@ -23,6 +25,57 @@ describe("isAwsHealthDataUrl", () => {
       false,
     );
     expect(isAwsHealthDataUrl("not a url")).toBe(false);
+  });
+});
+
+describe("isUsOrGlobalRegion", () => {
+  it("keeps us-* regions", () => {
+    expect(isUsOrGlobalRegion("us-east-1")).toBe(true);
+    expect(isUsOrGlobalRegion("us-west-2")).toBe(true);
+    expect(isUsOrGlobalRegion("us-gov-east-1")).toBe(true);
+  });
+
+  it("keeps global and region-less events", () => {
+    expect(isUsOrGlobalRegion("global")).toBe(true);
+    expect(isUsOrGlobalRegion("")).toBe(true);
+    expect(isUsOrGlobalRegion(undefined)).toBe(true);
+  });
+
+  it("drops non-US regions", () => {
+    expect(isUsOrGlobalRegion("me-south-1")).toBe(false);
+    expect(isUsOrGlobalRegion("eu-west-1")).toBe(false);
+    expect(isUsOrGlobalRegion("ap-southeast-2")).toBe(false);
+    expect(isUsOrGlobalRegion("sa-east-1")).toBe(false);
+  });
+});
+
+describe("normalizeAwsDataJson region filtering", () => {
+  const event = (region: string, summary: string) => ({
+    arn: `arn:aws:health:${region}:event/${summary}`,
+    region_name: region,
+    summary,
+  });
+
+  it("drops non-US events and keeps us-* / global", () => {
+    const result = normalizeAwsDataJson([
+      event("me-south-1", "Outage in Bahrain"),
+      event("us-east-1", "Increased error rates"),
+      event("global", "Console sign-in latency"),
+    ]);
+    const names = result.components.map((c) => c.name);
+    expect(names.some((n) => n.includes("me-south-1"))).toBe(false);
+    expect(names.some((n) => n.includes("us-east-1"))).toBe(true);
+    expect(names.some((n) => n.includes("global"))).toBe(true);
+  });
+
+  it("reports no US events when only non-US regions are present", () => {
+    const result = normalizeAwsDataJson([
+      event("me-south-1", "Outage in Bahrain"),
+      event("eu-west-1", "EU latency"),
+    ]);
+    expect(result.status.indicator).toBe("none");
+    expect(result.components).toHaveLength(1);
+    expect(result.components[0].status).toBe("operational");
   });
 });
 

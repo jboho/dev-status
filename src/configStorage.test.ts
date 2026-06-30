@@ -1,7 +1,87 @@
-import { beforeEach, describe, expect, it } from "vitest";
-import { loadAppConfig } from "./configStorage";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { loadAppConfig, persistAppConfig } from "./configStorage";
+import type { AppConfig } from "./types";
 
 const STORAGE_KEY = "dev-status.config.v1";
+
+function seed(config: AppConfig): void {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+}
+
+describe("loadAppConfig – dead service removal (browser path)", () => {
+  beforeEach(() => localStorage.clear());
+  afterEach(() => localStorage.clear());
+
+  it("strips a saved Redis entry and never re-adds it", async () => {
+    seed({
+      services: [
+        {
+          name: "GitHub",
+          url: "https://www.githubstatus.com/api/v2/summary.json",
+        },
+        { name: "Redis", url: "https://status.redis.com/api/v2/summary.json" },
+      ],
+    });
+
+    const config = await loadAppConfig();
+
+    expect(config.services.some((s) => s.name === "Redis")).toBe(false);
+    // Removal is persisted so it does not churn on the next launch.
+    const persisted = JSON.parse(
+      localStorage.getItem(STORAGE_KEY)!,
+    ) as AppConfig;
+    expect(persisted.services.some((s) => s.name === "Redis")).toBe(false);
+  });
+
+  it("keeps a user's deselection of a service across reloads", async () => {
+    seed({
+      services: [
+        {
+          name: "GitHub",
+          url: "https://www.githubstatus.com/api/v2/summary.json",
+          enabled: false,
+        },
+      ],
+    });
+
+    const first = await loadAppConfig();
+    expect(first.services.find((s) => s.name === "GitHub")?.enabled).toBe(
+      false,
+    );
+
+    const second = await loadAppConfig();
+    expect(second.services.find((s) => s.name === "GitHub")?.enabled).toBe(
+      false,
+    );
+  });
+
+  it("does not persist dead services on save", async () => {
+    seed({
+      services: [
+        {
+          name: "GitHub",
+          url: "https://www.githubstatus.com/api/v2/summary.json",
+        },
+        { name: "Redis", url: "https://status.redis.com/api/v2/summary.json" },
+      ],
+    });
+
+    await persistAppConfig({
+      services: [
+        {
+          name: "GitHub",
+          url: "https://www.githubstatus.com/api/v2/summary.json",
+        },
+        { name: "Redis", url: "https://status.redis.com/api/v2/summary.json" },
+      ],
+    });
+
+    const persisted = JSON.parse(
+      localStorage.getItem(STORAGE_KEY)!,
+    ) as AppConfig;
+    expect(persisted.services.some((s) => s.name === "Redis")).toBe(false);
+  });
+});
 
 describe("loadAppConfig legacy URL fixes", () => {
   beforeEach(() => localStorage.clear());

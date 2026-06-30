@@ -4,6 +4,7 @@ import { isTauri } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { isServiceEnabled, type AppConfig } from "./types";
 import {
+  isDeadServiceName,
   loadAppConfig,
   persistAppConfig,
   persistBrowserConfigSync,
@@ -46,7 +47,9 @@ export function useStatusData() {
   };
 
   const fetchStatuses = useCallback(async (currentConfig: AppConfig) => {
-    const active = currentConfig.services.filter(isServiceEnabled);
+    const active = currentConfig.services.filter(
+      (s) => isServiceEnabled(s) && !isDeadServiceName(s.name),
+    );
     const results = await Promise.all(
       active.map(async (service) => {
         try {

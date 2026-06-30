@@ -1,6 +1,7 @@
 import React from "react";
 import type { AppConfig, ServiceConfig } from "./types";
 import { isServiceEnabled } from "./types";
+import { isDeadServiceName } from "./configStorage";
 
 type ServicesScreenProps = {
   config: AppConfig;
@@ -173,14 +174,16 @@ export function ServicesScreen({
         </p>
 
         <div className="max-h-[calc(100vh-12rem)] overflow-y-auto rounded-xl border border-[var(--app-border)] bg-[var(--app-card)] px-3 py-1 shadow-sm ring-1 ring-black/5 dark:ring-0">
-          {config.services.map((s) => (
-            <ToggleRow
-              key={s.name}
-              service={s}
-              onToggle={() => void toggle(s.name)}
-              onUrlSave={(newUrl) => void saveUrl(s.name, newUrl)}
-            />
-          ))}
+          {config.services
+            .filter((s) => !isDeadServiceName(s.name))
+            .map((s) => (
+              <ToggleRow
+                key={s.name}
+                service={s}
+                onToggle={() => void toggle(s.name)}
+                onUrlSave={(newUrl) => void saveUrl(s.name, newUrl)}
+              />
+            ))}
         </div>
       </div>
     </div>

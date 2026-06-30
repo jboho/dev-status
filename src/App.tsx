@@ -30,6 +30,7 @@ import { isServiceEnabled, type StatuspageResponse } from "./types";
 import { isTauri, invoke } from "@tauri-apps/api/core";
 import { FailureBanner, type ServiceFailure } from "./FailureBanner";
 import { deriveServiceState } from "./serviceStatusState";
+import { isDeadServiceName } from "./configStorage";
 
 const THEME_KEY = "dev-status-theme";
 
@@ -324,7 +325,9 @@ function App() {
 
   const enabledServices = useMemo(() => {
     if (!config) return [];
-    return config.services.filter(isServiceEnabled);
+    return config.services.filter(
+      (s) => isServiceEnabled(s) && !isDeadServiceName(s.name),
+    );
   }, [config]);
 
   const visibleServices = useMemo(() => {
