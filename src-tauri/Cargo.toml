@@ -1,6 +1,6 @@
 [package]
 name = "app"
-version = "2026.6.6"
+version = "2026.6.7"
 description = "DevStatus: live dashboard for developer-service status pages"
 authors = ["Jonathan Boho <552156+jboho@users.noreply.github.com>"]
 license = "MIT"

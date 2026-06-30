@@ -7,6 +7,17 @@ Version numbers use [Calendar Versioning](https://calver.org/) (`YYYY.M.MICRO`) 
 
 ## [Unreleased]
 
+## [2026.6.7] — 2026-06-30
+
+### Added
+
+- **AWS US-region filter:** AWS Health events are now scoped to `us-*` and global/region-less events only (IAM, Route 53, CloudFront, billing). EU, AP, ME, and SA events are dropped, so the AWS card reflects what actually affects US-based users. When no US-region events are active the card shows "No active US-region events" instead of a blank feed.
+
+### Fixed
+
+- **Dead services never re-enter saved config:** `persistAppConfig` and `persistBrowserConfigSync` now sanitize the config before writing — retired feeds (Redis, Anthropic) are stripped and legacy URL fixes are applied at every save, not just on load. Previously a save cycle could re-add a dead service that had been removed on startup.
+- **Dead services hidden at render time:** The dashboard, Services settings screen, and active-fetch loop now each guard against retired feed names, so even a stale config cannot surface a Redis or Anthropic card.
+
 ## [2026.6.6] — 2026-06-27
 
 ### Changed
