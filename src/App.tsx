@@ -27,7 +27,7 @@ import { openExternalUrl } from "./openExternal";
 import { formatPollIntervalLabel } from "./statusChange";
 import { resolveStatusPageHref } from "./statusPageUrl";
 import { isServiceEnabled, type StatuspageResponse } from "./types";
-import { isTauri, invoke } from "@tauri-apps/api/core";
+import { isTauri } from "@tauri-apps/api/core";
 import { FailureBanner, type ServiceFailure } from "./FailureBanner";
 import { deriveServiceState } from "./serviceStatusState";
 import { isDeadServiceName } from "./configStorage";
@@ -317,11 +317,6 @@ function App() {
     () => overallIndicatorFromStatuses(statuses),
     [statuses],
   );
-
-  useEffect(() => {
-    if (!isTauri()) return;
-    void invoke("update_tray_icon", { indicator: overall });
-  }, [overall]);
 
   const enabledServices = useMemo(() => {
     if (!config) return [];

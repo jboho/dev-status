@@ -63,7 +63,7 @@ The **services screen** lets you toggle any feed on or off individually. Disable
 - **Statuspage-compatible** — Consumes the standard Statuspage `summary.json` API (`page`, `status`, `components`); **AWS** uses `status.aws.amazon.com/data.json`, normalized to the same shape. Adding a new service is a one-line config change.
 - **Reorder** — Drag-and-drop card order, persisted across restarts.
 - **Theme** — Light/dark, persisted (`localStorage` key `dev-status-theme` in the browser; desktop uses app storage).
-- **Desktop shell** — System tray icon (click to show/hide), close hides the window instead of quitting, config stored in the OS app-data directory, Rust-side `reqwest` for feeds that don't send CORS headers from the webview.
+- **Desktop shell** — Lives in the Dock; closing the window hides it (click the Dock icon to reopen) instead of quitting, config stored in the OS app-data directory, Rust-side `reqwest` for feeds that don't send CORS headers from the webview.
 
 ## Requirements
 

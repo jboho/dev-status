@@ -80,7 +80,6 @@ name = "app"
 version = "2026.6.7"
 dependencies = [
  "log",
- "png 0.17.16",
  "reqwest 0.12.28",
  "serde",
  "serde_json",

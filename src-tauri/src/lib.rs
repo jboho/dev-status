@@ -1,26 +1,6 @@
 use std::fs;
 use std::path::PathBuf;
-use std::sync::Mutex;
 use tauri::{AppHandle, Manager};
-use tauri::tray::{MouseButton, TrayIconBuilder, TrayIconEvent};
-
-struct TrayState(Mutex<tauri::tray::TrayIcon>);
-
-fn png_to_image(bytes: &[u8]) -> Result<tauri::image::Image<'static>, String> {
-    let decoder = png::Decoder::new(std::io::Cursor::new(bytes));
-    let mut reader = decoder.read_info().map_err(|e| e.to_string())?;
-    let mut buf = vec![0u8; reader.output_buffer_size()];
-    let info = reader.next_frame(&mut buf).map_err(|e| e.to_string())?;
-    let rgba: Vec<u8> = match info.color_type {
-        png::ColorType::Rgba => buf[..info.buffer_size()].to_vec(),
-        png::ColorType::Rgb => buf[..info.buffer_size()]
-            .chunks(3)
-            .flat_map(|c| [c[0], c[1], c[2], 255u8])
-            .collect(),
-        other => return Err(format!("unsupported PNG color type: {other:?}")),
-    };
-    Ok(tauri::image::Image::new_owned(rgba, info.width, info.height))
-}
 
 // Repairs known-broken service entries from older configs.
 // Returns (possibly-modified json, whether a change was made).
@@ -143,24 +123,6 @@ fn save_config(app: AppHandle, config: String) -> Result<(), String> {
     fs::write(config_path, config).map_err(|e| e.to_string())
 }
 
-/// Update the system tray icon to reflect current overall status.
-/// indicator: "none" → ok (green), "minor"/"maintenance" → warn (amber), anything else → down (red).
-#[tauri::command]
-fn update_tray_icon(app: AppHandle, indicator: String) -> Result<(), String> {
-    let bytes: &'static [u8] = match indicator.to_lowercase().as_str() {
-        "none" => include_bytes!("../icons/tray/tray-ok.png"),
-        "minor" | "maintenance" => include_bytes!("../icons/tray/tray-warn.png"),
-        _ => include_bytes!("../icons/tray/tray-down.png"),
-    };
-    let image = png_to_image(bytes)?;
-    app.state::<TrayState>()
-        .0
-        .lock()
-        .unwrap()
-        .set_icon(Some(image))
-        .map_err(|e| e.to_string())
-}
-
 /// Fetch URL body in Rust (follows redirects). Bypasses browser CORS for status APIs like AWS Health.
 #[tauri::command]
 async fn fetch_status_body(url: String) -> Result<Vec<u8>, String> {
@@ -199,7 +161,7 @@ pub fn run() {
     .plugin(tauri_plugin_fs::init())
     .plugin(tauri_plugin_opener::init())
     .plugin(tauri_plugin_notification::init())
-    .invoke_handler(tauri::generate_handler![get_config, save_config, fetch_status_body, update_tray_icon])
+    .invoke_handler(tauri::generate_handler![get_config, save_config, fetch_status_body])
     .setup(|app| {
       if cfg!(debug_assertions) {
         app.handle().plugin(
@@ -209,31 +171,6 @@ pub fn run() {
         )?;
       }
 
-      let tray_icon = png_to_image(include_bytes!("../icons/tray/tray-ok.png"))
-        .expect("tray-ok.png must be bundled");
-      let tray = TrayIconBuilder::new()
-        .icon(tray_icon)
-        .on_tray_icon_event(|tray, event| {
-            if let TrayIconEvent::Click {
-                button: MouseButton::Left,
-                ..
-            } = event
-            {
-                let app = tray.app_handle();
-                if let Some(window) = app.get_webview_window("main") {
-                    let is_visible = window.is_visible().unwrap_or(false);
-                    if is_visible {
-                        let _ = window.hide();
-                    } else {
-                        let _ = window.show();
-                        let _ = window.set_focus();
-                    }
-                }
-            }
-        })
-        .build(app)?;
-      app.manage(TrayState(Mutex::new(tray)));
-
       Ok(())
     })
     .on_window_event(|window, event| {
@@ -242,6 +179,19 @@ pub fn run() {
             api.prevent_close();
         }
     })
-    .run(tauri::generate_context!())
-    .expect("error while running tauri application");
+    .build(tauri::generate_context!())
+    .expect("error while building tauri application")
+    .run(|app, event| {
+        // Dock-only app: the close button hides the window (prevent_close above),
+        // so clicking the dock icon must re-show it. Reopen (macOS-only event) fires on that click.
+        #[cfg(target_os = "macos")]
+        if let tauri::RunEvent::Reopen { .. } = event {
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.show();
+                let _ = window.set_focus();
+            }
+        }
+        #[cfg(not(target_os = "macos"))]
+        let _ = (app, event);
+    });
 }
