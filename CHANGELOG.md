@@ -5,7 +5,7 @@ All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
 Version numbers use [Calendar Versioning](https://calver.org/) (`YYYY.M.MICRO`) — see [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## [Unreleased]
+## [2026.9.0] — 2026-09-12
 
 ### Added
 
