@@ -24,6 +24,16 @@ Or individually: `pnpm format:check`, `pnpm lint`, `pnpm test:run`, `pnpm build`
 
 **Coverage (optional):** `pnpm test:coverage` writes an HTML report under `coverage/` (gitignored). Use it to find gaps; low overall % is expected until more component and hook tests exist.
 
+### Adding a shadcn/ui component
+
+The `shadcn` CLI is **not** a project dependency — it scaffolds files once and ships no runtime code, and its own dependency tree was the source of most `pnpm audit` findings. Run it on demand instead:
+
+```bash
+pnpm dlx shadcn@latest add <component>
+```
+
+[`components.json`](components.json) holds the configuration it reads (style, aliases, Tailwind paths), so generated files land in `src/components/ui/` and match the existing ones.
+
 ## Versioning (CalVer)
 
 This project uses **Calendar Versioning**. The public version string is **`YYYY.M.MICRO`**:

@@ -16,6 +16,10 @@ Version numbers use [Calendar Versioning](https://calver.org/) (`YYYY.M.MICRO`) 
 
 - **Duplicate README section:** Removed a repeated Screenshots block that rendered the same image table and captions twice.
 
+### Removed
+
+- **`shadcn` dependency:** The shadcn/ui CLI is a one-shot scaffolding tool whose components are already vendored into `src/components/ui/`, but it sat in `dependencies` and pulled in 264 transitive packages — including `@modelcontextprotocol/sdk` — which accounted for nearly every `pnpm audit` finding. Removing it takes the audit from 25 findings (7 high) to 2 (both moderate) and leaves the production bundle byte-identical. Scaffold new components with `pnpm dlx shadcn@latest add <component>`; [`components.json`](components.json) still configures it. The now-unreachable `brace-expansion`, `fast-uri`, `ip-address`, and `js-yaml` overrides were dropped with it.
+
 ### Security
 
 - Raised the `fast-uri` (→ 3.1.7) and `js-yaml` (→ 4.3.2) pnpm overrides and added one for `browserslist` (→ 4.28.9), clearing seven high-severity advisories in transitive dependencies: SSRF and host-confusion in `fast-uri` ([GHSA-f65p-4m7j-42xc](https://github.com/advisories/GHSA-f65p-4m7j-42xc), [GHSA-fph4-wmhf-6fwf](https://github.com/advisories/GHSA-fph4-wmhf-6fwf), [GHSA-jqff-g426-hqxp](https://github.com/advisories/GHSA-jqff-g426-hqxp)), CPU exhaustion in `js-yaml` ([GHSA-2883-xcg3-v3hh](https://github.com/advisories/GHSA-2883-xcg3-v3hh)), and unbounded memory growth plus a prototype-write crash in `browserslist`. All three stay within the major versions their dependents expect.
