@@ -39,16 +39,6 @@
 | ------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------- |
 | ![Dashboard showing service health cards with component-level detail expanded for Claude](docs/screenshot-dashboard.png) | ![Services settings screen with per-feed toggles and API URLs](docs/screenshot-services.png) |
 
-The **dashboard** shows a live health summary across all enabled services. Each card displays the overall status and component count; clicking expands it to show individual components with their current status (Operational, Partial Outage, Major Outage, etc.) and a link to the full status page.
-
-The **services screen** lets you toggle any feed on or off individually. Disabled services stay in your list but are excluded from polling and the dashboard.
-
-## Screenshots
-
-| Dashboard                                                                                                                | Services                                                                                     |
-| ------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------- |
-| ![Dashboard showing service health cards with component-level detail expanded for Claude](docs/screenshot-dashboard.png) | ![Services settings screen with per-feed toggles and API URLs](docs/screenshot-services.png) |
-
 The **dashboard** shows a live health summary across all enabled services. Each card displays the overall status and component count; clicking expands it to show individual components with their current status (Operational, Partial Outage, Major Outage, etc.). The header shows the auto-refresh interval and time of last update.
 
 The **services screen** lets you toggle any feed on or off individually. Disabled services remain in your list but are excluded from polling and the dashboard view. Each entry shows the underlying status API URL.
@@ -148,7 +138,7 @@ pnpm tauri build
 Artifacts land under `src-tauri/target/release/bundle/` (layout depends on OS and [bundle targets](https://v2.tauri.app/reference/config/#bundle)). The same flow targets **macOS**, **Windows**, and **Linux**; you need the target OS (or CI) to produce that platform’s bundle.
 
 - **Windows** — Requires a Windows environment or runner + [Windows prerequisites](https://v2.tauri.app/start/prerequisites/).
-- **macOS** — Build on macOS (or a macOS runner). Unsigned CI artifacts may need [signing / notarization](https://v2.tauri.app/distribute/sign-macos/) for distribution outside ad-hoc use.
+- **macOS** — Build on macOS (or a macOS runner). Local builds are ad-hoc signed and run fine on the machine that produced them. Release builds are signed with a Developer ID certificate and notarized by Apple — see [Releasing](CONTRIBUTING.md#macos-signing-and-notarization) for the required secrets.
 
 **CI** — [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs **quality** on Ubuntu (lint, format, tests, **coverage artifact**, production web build, audit), then **desktop** on `windows-latest` and `macos-latest`, uploading bundle folders as workflow artifacts. [Dependabot](.github/dependabot.yml) opens weekly update PRs for npm, Cargo, and Actions.
 

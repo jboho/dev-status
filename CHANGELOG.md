@@ -7,6 +7,15 @@ Version numbers use [Calendar Versioning](https://calver.org/) (`YYYY.M.MICRO`) 
 
 ## [Unreleased]
 
+### Added
+
+- **Signed and notarized macOS releases:** The release workflow now signs the macOS bundle with a Developer ID Application certificate and submits it to Apple for notarization, stapling the ticket to the app. Downloaded builds open without the _"DevStatus is damaged and can't be opened"_ Gatekeeper error that ad-hoc-signed bundles produce. Requires the `APPLE_*` repository secrets documented in [CONTRIBUTING.md](CONTRIBUTING.md#macos-signing-and-notarization); with none set, the workflow warns and falls back to the previous ad-hoc bundle, and it fails fast on a partially configured set. Windows installers remain unsigned.
+- **Universal macOS binary:** Release builds now target `universal-apple-darwin`, so one bundle runs natively on both Apple Silicon and Intel Macs. Previously the release shipped whatever architecture the runner happened to be (Apple Silicon), leaving Intel Macs with nothing to install.
+
+### Fixed
+
+- **Duplicate README section:** Removed a repeated Screenshots block that rendered the same image table and captions twice.
+
 ## [2026.6.7] — 2026-06-30
 
 ### Added

@@ -13,10 +13,19 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, macos-latest]
+        include:
+          # macos-latest runners are Apple Silicon, so a default build ships nothing an Intel
+          # Mac can run. One universal binary covers both architectures from the same runner.
+          - os: macos-latest
+            args: --target universal-apple-darwin
+            rust-targets: aarch64-apple-darwin,x86_64-apple-darwin
+          - os: windows-latest
+            args: ""
+            rust-targets: ""
 
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 45
+    # Notarization waits on Apple's service, so the macOS leg runs longer than a plain build.
+    timeout-minutes: 60
     permissions:
       contents: write
 
@@ -35,6 +44,8 @@ jobs:
 
       - name: Rust toolchain
         uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust-targets }}
 
       - name: Cache Rust / Cargo
         uses: Swatinem/rust-cache@v2
@@ -44,11 +55,49 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # An absent secret is exported as an empty string, and the Tauri bundler treats
+      # "set but empty" as a real value: an empty APPLE_CERTIFICATE fails the keychain
+      # import, and empty notarization credentials fail notarytool auth. So export the set
+      # only once it is fully populated — a fork without secrets still builds ad-hoc signed.
+      - name: Configure Apple signing and notarization
+        if: runner.os == 'macOS'
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          vars=(APPLE_CERTIFICATE APPLE_CERTIFICATE_PASSWORD APPLE_ID APPLE_PASSWORD APPLE_TEAM_ID)
+          missing=()
+          for v in "${vars[@]}"; do
+            [ -n "${!v}" ] || missing+=("$v")
+          done
+
+          if [ "${#missing[@]}" -eq "${#vars[@]}" ]; then
+            echo "::warning::No Apple signing secrets configured - the macOS bundle will be ad-hoc signed and not notarized."
+            exit 0
+          fi
+
+          if [ "${#missing[@]}" -ne 0 ]; then
+            echo "::error::Apple signing is partially configured. Missing secrets: ${missing[*]}"
+            exit 1
+          fi
+
+          for v in "${vars[@]}"; do
+            printf '%s<<__SECRET_EOF__\n%s\n__SECRET_EOF__\n' "$v" "${!v}" >> "$GITHUB_ENV"
+          done
+          echo "Apple signing and notarization enabled."
+
       - name: Build and publish release
         uses: tauri-apps/tauri-action@v1
+        # APPLE_* signing vars arrive from the step above via $GITHUB_ENV. Deliberately no
+        # APPLE_SIGNING_IDENTITY: the bundler derives the identity from the certificate and
+        # errors out if an explicitly provided one disagrees with it.
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          args: ${{ matrix.args }}
           tagName: ${{ github.ref_name }}
           releaseName: DevStatus ${{ github.ref_name }}
           releaseDraft: true
