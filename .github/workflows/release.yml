@@ -87,6 +87,7 @@ jobs:
           for v in "${vars[@]}"; do
             printf '%s<<__SECRET_EOF__\n%s\n__SECRET_EOF__\n' "$v" "${!v}" >> "$GITHUB_ENV"
           done
+          echo "APPLE_SIGNING_ENABLED=1" >> "$GITHUB_ENV"
           echo "Apple signing and notarization enabled."
 
       - name: Build and publish release
@@ -102,3 +103,44 @@ jobs:
           releaseName: DevStatus ${{ github.ref_name }}
           releaseDraft: true
           prerelease: false
+
+      # The bundler notarizes and staples the .app but only code-signs the .dmg around it
+      # (tauri-bundler/src/bundle/macos/dmg/mod.rs has no notarize call), so the disk image
+      # people actually download assesses as "Unnotarized Developer ID" and Gatekeeper blocks
+      # it on open. Notarize and staple it here, then replace the asset tauri-action uploaded.
+      - name: Notarize and staple the macOS disk image
+        if: runner.os == 'macOS' && env.APPLE_SIGNING_ENABLED == '1'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          find src-tauri/target -type f -path '*/release/bundle/dmg/*.dmg' > "$RUNNER_TEMP/dmgs.txt"
+          count=$(wc -l < "$RUNNER_TEMP/dmgs.txt" | tr -d ' ')
+          if [ "$count" -ne 1 ]; then
+            echo "::error::Expected exactly one .dmg to notarize, found $count"
+            cat "$RUNNER_TEMP/dmgs.txt"
+            exit 1
+          fi
+          dmg=$(cat "$RUNNER_TEMP/dmgs.txt")
+          echo "Notarizing $dmg"
+
+          xcrun notarytool submit "$dmg" \
+            --apple-id "$APPLE_ID" \
+            --password "$APPLE_PASSWORD" \
+            --team-id "$APPLE_TEAM_ID" \
+            --wait 2>&1 | tee "$RUNNER_TEMP/notarize.log"
+
+          # --wait exits non-zero on a hard failure, but a completed-and-rejected submission
+          # still reads as success, so assert on the reported status too.
+          grep -q 'status: Accepted' "$RUNNER_TEMP/notarize.log" || {
+            echo "::error::Notarization did not return Accepted for $(basename "$dmg")"
+            exit 1
+          }
+
+          xcrun stapler staple "$dmg"
+          xcrun stapler validate "$dmg"
+          # Apple's prescribed Gatekeeper check for a disk image (the app inside uses -t install).
+          spctl --assess --type open --context context:primary-signature -vv "$dmg"
+
+          gh release upload "$GITHUB_REF_NAME" "$dmg" --clobber

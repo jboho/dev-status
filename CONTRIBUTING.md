@@ -97,6 +97,14 @@ openssl base64 -A -in certificate.p12 | pbcopy
 
 The Tauri bundler imports the certificate into a temporary keychain it deletes afterwards, derives the signing identity from the certificate itself, then notarizes and staples the ticket. Hardened runtime is on by default, which notarization requires.
 
+The bundler only does that for the `.app`; it code-signs the surrounding `.dmg` but never notarizes it, which leaves the disk image assessing as `Unnotarized Developer ID`. A follow-up workflow step notarizes and staples the `.dmg` as well and re-uploads it to the draft release, so both artifacts pass Gatekeeper:
+
+```bash
+spctl -a -vv -t install /Volumes/DevStatus/DevStatus.app          # accepted, Notarized Developer ID
+spctl -a -vv -t open --context context:primary-signature Dev*.dmg # accepted
+xcrun stapler validate <either>                                   # ticket present
+```
+
 **All five secrets or none.** The workflow fails fast on a partial set, and with none configured it logs a warning and produces the same ad-hoc-signed bundle as a local `pnpm tauri build` — fine for local use, but downloaders see _"DevStatus is damaged and can't be opened"_ because of the quarantine flag.
 
 Windows installers are **not** signed yet, so SmartScreen will warn on first run.

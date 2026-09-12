@@ -5,6 +5,12 @@ All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
 Version numbers use [Calendar Versioning](https://calver.org/) (`YYYY.M.MICRO`) — see [CONTRIBUTING.md](CONTRIBUTING.md).
 
+## [Unreleased]
+
+### Fixed
+
+- **Notarized macOS disk image:** The `.dmg` is now notarized and stapled, not just code-signed. Tauri's bundler notarizes the `.app` but only signs the disk image wrapped around it, so `2026.9.0`'s download assessed as `Unnotarized Developer ID` and Gatekeeper would block the `.dmg` on open even though the app inside it was fine. The release workflow now submits the disk image to Apple after the build, staples the ticket, asserts the Gatekeeper verdict, and replaces the uploaded asset.
+
 ## [2026.9.0] — 2026-09-12
 
 ### Added
