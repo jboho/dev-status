@@ -37,7 +37,7 @@
 
 | Dashboard                                                                                                                | Services                                                                                     |
 | ------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------- |
-| ![Dashboard showing service health cards with component-level detail expanded for Claude](docs/screenshot-dashboard.png) | ![Services settings screen with per-feed toggles and API URLs](docs/screenshot-services.png) |
+| ![Dashboard showing a 13/17 healthy summary and a collapsible health card per service](docs/screenshot-dashboard.png) | ![Services settings screen with per-feed toggles and API URLs](docs/screenshot-services.png) |
 
 The **dashboard** shows a live health summary across all enabled services. Each card displays the overall status and component count; clicking expands it to show individual components with their current status (Operational, Partial Outage, Major Outage, etc.). The header shows the auto-refresh interval and time of last update.
 
