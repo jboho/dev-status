@@ -2,7 +2,7 @@
   "name": "dev-status",
   "private": true,
   "license": "MIT",
-  "version": "2026.9.1",
+  "version": "2026.10.0",
   "engines": {
     "node": ">=22"
   },

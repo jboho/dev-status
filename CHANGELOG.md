@@ -5,6 +5,21 @@ All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
 Version numbers use [Calendar Versioning](https://calver.org/) (`YYYY.M.MICRO`) — see [CONTRIBUTING.md](CONTRIBUTING.md).
 
+## [2026.10.0] — 2026-10-05
+
+### Changed
+
+- **Public repository:** The project now lives in a fresh-history repository. The previous history is archived privately.
+- **Release workflow hardening:** Actions are pinned to commit SHAs, tokens use least privilege, and signing secrets are scoped to a `release` environment limited to version tags.
+
+### Fixed
+
+- **Dependency advisories:** Bumped `jsdom` to 30.1.2 to clear the `undici` audit failures.
+
+### Documentation
+
+- Refreshed the README screenshots.
+
 ## [2026.9.1] — 2026-09-12
 
 ### Fixed
