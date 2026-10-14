@@ -9,6 +9,10 @@ export const DEFAULT_APP_CONFIG: AppConfig = {
       url: "https://www.githubstatus.com/api/v2/summary.json",
     },
     {
+      name: "GitLab",
+      url: "https://api.status.io/1.0/status/5b36dc6502d06804c08349f7",
+    },
+    {
       name: "Vercel",
       url: "https://www.vercel-status.com/api/v2/summary.json",
     },

@@ -66,4 +66,26 @@ describe("fetchOneService (browser path)", () => {
     expect(names).not.toContain("pragma");
     expect(init?.cache).toBe("no-store");
   });
+
+  it("normalizes a status.io feed into the Statuspage shape", async () => {
+    const body = {
+      result: {
+        status_overall: { status: "Operational", status_code: 100 },
+        status: [{ id: "c", name: "API", status_code: 100 }],
+      },
+    };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(JSON.stringify(body), { status: 200 })),
+    );
+    const out = await fetchOneService({
+      name: "GitLab",
+      url: "https://api.status.io/1.0/status/5b36dc6502d06804c08349f7",
+    });
+    expect(out.page.url).toBe("https://status.gitlab.com");
+    expect(out.status.indicator).toBe("none");
+    expect(out.components).toEqual([
+      { id: "c", name: "API", status: "operational" },
+    ]);
+  });
 });
