@@ -4,6 +4,7 @@ import {
   normalizeAwsDataJson,
   parseAwsHealthDataBuffer,
 } from "./awsHealthStatus";
+import { normalizeStatusIoJson, statusIoPageId } from "./statusIoStatus";
 import type { ServiceConfig, StatuspageResponse } from "./types";
 
 /** In Vite dev (browser only), AWS Health JSON has no CORS — proxy avoids a silent fetch failure. */
@@ -53,6 +54,11 @@ export async function fetchOneService(
     const urlToFetch = resolveAwsProxyUrlForBrowser(service.url);
     const buf = await fetchUrlBytes(urlToFetch);
     return normalizeAwsDataJson(parseAwsHealthDataBuffer(buf));
+  }
+  const statusIoId = statusIoPageId(service.url);
+  if (statusIoId) {
+    const buf = await fetchUrlBytes(service.url);
+    return normalizeStatusIoJson(utf8JsonParse(buf), statusIoId);
   }
   if (isTauri()) {
     const buf = await fetchUrlBytes(service.url);

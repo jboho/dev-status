@@ -22,7 +22,7 @@
 
 ## Overview
 
-**dev-status** aggregates **public** incident and component feeds (mostly [Atlassian Statuspage](https://developer.statuspage.io/) `summary.json`-compatible APIs, plus AWS’s status JSON) into one glanceable view: overall health, per-provider indicators, and expandable component detail. Run it as a **native desktop app** ([Tauri](https://tauri.app/)) or in the **browser** during development.
+**dev-status** aggregates **public** incident and component feeds (mostly [Atlassian Statuspage](https://developer.statuspage.io/) `summary.json`-compatible APIs, plus AWS’s status JSON and GitLab’s status.io feed) into one glanceable view: overall health, per-provider indicators, and expandable component detail. Run it as a **native desktop app** ([Tauri](https://tauri.app/)) or in the **browser** during development.
 
 | Topic               | Links                                                                                        |
 | ------------------- | -------------------------------------------------------------------------------------------- |
@@ -50,7 +50,7 @@ The **services screen** lets you toggle any feed on or off individually. Disable
 - **Auto-refresh** — Automatic polling (default **every 5 minutes**) plus manual refresh; requests avoid stale HTTP caches so you always see current data. A manual refresh button and “last updated” timestamp are always visible in the header.
 - **Desktop notifications** — On each poll, the app diffs the page-level `status.indicator` for every enabled service against the previous result. If anything changed, it fires a single bundled OS notification — title _”DevStatus”_, body listing each affected service as `ServiceName: from → to` (e.g. `Claude: none → minor`). No notification fires on the first load (no baseline yet), so you won’t get a flood on startup. Tauri-only; the app requests OS permission on the first trigger.
 - **Per-service toggles** — Toggle providers on or off without deleting them from your list. Disabled services are excluded from polling and the dashboard.
-- **Statuspage-compatible** — Consumes the standard Statuspage `summary.json` API (`page`, `status`, `components`); **AWS** uses `status.aws.amazon.com/data.json`, normalized to the same shape. Adding a new service is a one-line config change.
+- **Statuspage-compatible** — Consumes the standard Statuspage `summary.json` API (`page`, `status`, `components`); **AWS** uses `status.aws.amazon.com/data.json` and **GitLab** uses status.io (`api.status.io/1.0/status/{id}`), both normalized to the same shape. Adding a new service is a one-line config change.
 - **Reorder** — Drag-and-drop card order, persisted across restarts.
 - **Theme** — Light/dark, persisted (`localStorage` key `dev-status-theme` in the browser; desktop uses app storage).
 - **Desktop shell** — Lives in the Dock; closing the window hides it (click the Dock icon to reopen) instead of quitting, config stored in the OS app-data directory, Rust-side `reqwest` for feeds that don't send CORS headers from the webview.

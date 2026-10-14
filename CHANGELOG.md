@@ -5,6 +5,12 @@ All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
 Version numbers use [Calendar Versioning](https://calver.org/) (`YYYY.M.MICRO`) — see [CONTRIBUTING.md](CONTRIBUTING.md).
 
+## [Unreleased]
+
+### Added
+
+- **GitLab:** GitLab.com is now a default service. GitLab's status page runs on status.io rather than Statuspage, so a new adapter maps the status.io feed (`api.status.io/1.0/status/{id}`) to the same view. Existing configs pick GitLab up automatically. An unknown status.io code shows as degraded, never as operational, and a feed with an unexpected shape shows as a fetch error.
+
 ## [2026.10.0] — 2026-10-05
 
 ### Changed
