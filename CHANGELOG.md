@@ -7,9 +7,19 @@ Version numbers use [Calendar Versioning](https://calver.org/) (`YYYY.M.MICRO`) 
 
 ## [Unreleased]
 
+## [2026.10.1] — 2026-10-25
+
 ### Added
 
 - **GitLab:** GitLab.com is now a default service. GitLab's status page runs on status.io rather than Statuspage, so a new adapter maps the status.io feed (`api.status.io/1.0/status/{id}`) to the same view. Existing configs pick GitLab up automatically. An unknown status.io code shows as degraded, never as operational, and a feed with an unexpected shape shows as a fetch error.
+
+### Fixed
+
+- **Dependency overrides:** The `hono` and `undici` overrides lived in `pnpm-workspace.yaml`, which pnpm ignores when `package.json` has its own `pnpm.overrides`, so they never applied. All overrides now live in `package.json`, and `pnpm-workspace.yaml` is removed.
+
+### Security
+
+- Cleared advisories in build and test tooling; none of these packages ship in the installed app. `vite` → 8.1.6 (bundled `launch-editor`: [GHSA-r825-w8mm-5pxw](https://github.com/advisories/GHSA-r825-w8mm-5pxw), [GHSA-587h-7wmj-h5pm](https://github.com/advisories/GHSA-587h-7wmj-h5pm), [GHSA-698v-4r3x-3vcv](https://github.com/advisories/GHSA-698v-4r3x-3vcv)); `vitest` → 4.1.12 (`@vitest/mocker`: [GHSA-xp26-3454-mjgp](https://github.com/advisories/GHSA-xp26-3454-mjgp), [GHSA-qxg6-89mg-rqv8](https://github.com/advisories/GHSA-qxg6-89mg-rqv8)); overrides for `undici` (→ 8.12.2, [GHSA-xjj6-f33q-929c](https://github.com/advisories/GHSA-xjj6-f33q-929c)), `happy-dom` (→ 21.0.4, [GHSA-834v-8h66-3h79](https://github.com/advisories/GHSA-834v-8h66-3h79)) and `source-map-js` (→ 1.2.2, [GHSA-68fv-2mgg-jv7q](https://github.com/advisories/GHSA-68fv-2mgg-jv7q)).
 
 ## [2026.10.0] — 2026-10-05
 
